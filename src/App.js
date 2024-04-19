@@ -1,4 +1,4 @@
-import { Alchemy, Network } from 'alchemy-sdk';
+import { Alchemy, Network, Utils } from 'alchemy-sdk';
 import { useEffect, useState } from 'react';
 
 import './App.css';
@@ -21,16 +21,34 @@ const alchemy = new Alchemy(settings);
 
 function App() {
   const [blockNumber, setBlockNumber] = useState();
+  const [html, setHtml] = useState();
 
   useEffect(() => {
     async function getBlockNumber() {
-      setBlockNumber(await alchemy.core.getBlockNumber());
-    }
+      let block = await alchemy.core.getBlockNumber();
+      setBlockNumber(block);
 
-    getBlockNumber();
-  });
+      block = await alchemy.core.getBlockWithTransactions(blockNumber);
+      let blockTransactions = block.transactions;
 
-  return <div className="App">Block Number: {blockNumber}</div>;
+      let div = [];
+      let i = 1;
+      blockTransactions.forEach(transaction => {
+        div.push(<div>{i}From:{transaction.from} / to:{transaction.to} Amount:{Utils.formatEther(transaction.value)}</div>);
+        i++; 
+    });
+
+    console.log("length",blockTransactions.length,"div", div);
+    setHtml(div);
+  }
+
+  getBlockNumber();
+});
+
+  return (<div className="App"><div>Block Number: {blockNumber}</div><br/>
+          <div><br/></div>
+          <div>{html}</div>
+          </div>);
+
 }
-
 export default App;
